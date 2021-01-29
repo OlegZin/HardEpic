@@ -16,7 +16,7 @@ type
         procedure SaveGame;
         procedure RemoveGame;
         procedure UpdateInterface(scr: TScrSet);
-        function IncDay(delta: integer = 1): boolean;
+        function IncDay: boolean;
         function GetText(text_id: string): string;
         function GetLang: string;
         procedure DecLanguage;
@@ -44,11 +44,11 @@ end;
 
 procedure TGameManager.NewGame;
 var
-    lang: integer;
+    _lang: integer;
 begin
-    lang := DB.O['state'].I['lang'];
+    _lang := DB.O['state'].I[var_lang];
     DB := SO(DBjson);
-    DB.O['state'].I['lang'] := lang;
+    DB.O['state'].I[var_lang] := _lang;
 end;
 
 procedure TGameManager.RemoveGame;
@@ -64,32 +64,27 @@ end;
 procedure TGameManager.DecLanguage;
 // перебираем язык к началу массива доступных
 begin
-    DB.O['state'].I['lang'] := DB.O['state'].I['lang'] - 1;
-    if DB.O['state'].I['lang'] < Low(Lang)
-    then DB.O['state'].I['lang'] := High(Lang);
+    DB.O['state'].I[var_lang] := DB.O['state'].I[var_lang] - 1;
+    if DB.O['state'].I[var_lang] < Low(LangArr)
+    then DB.O['state'].I[var_lang] := High(LangArr);
 end;
 
 function TGameManager.GetLang: string;
 begin
-    result := Lang[DB.O['state'].I['lang']];
+    result := LangArr[DB.O['state'].I[var_lang]];
 end;
 
-function TGameManager.IncDay(delta: integer = 1): boolean;
+function TGameManager.IncDay: boolean;
 begin
-    DB.O['state'].I['day'] := DB.O['state'].I['day'] + delta;
-
-    // изменяем количество ресурсов. однако, ниже нуля их быть не может
-    DB.O['state'].I['res'] := Max(DB.O['state'].I['res'] + DB.O['state'].I['res_inc'] * delta, 0);
-    DB.O['state'].I['mp']  := Max(DB.O['state'].I['mp']  + DB.O['state'].I['mp_inc'] * delta, 0);
-    DB.O['state'].I['iq']  := Max(DB.O['state'].I['iq']  + DB.O['state'].I['iq_inc'] * delta, 0);
+    DB.O['state'].I[var_turn] := DB.O['state'].I[var_turn] + 1;
 end;
 
 procedure TGameManager.IncLanguage;
 // перебираем язык к концу массива доступных
 begin
-    DB.O['state'].I['lang'] := DB.O['state'].I['lang'] + 1;
-    if DB.O['state'].I['lang'] > High(Lang)
-    then DB.O['state'].I['lang'] := Low(Lang);
+    DB.O['state'].I[var_lang] := DB.O['state'].I[var_lang] + 1;
+    if DB.O['state'].I[var_lang] > High(LangArr)
+    then DB.O['state'].I[var_lang] := Low(LangArr);
 end;
 
 procedure TGameManager.LoadGame;
@@ -98,7 +93,7 @@ begin
    DB.O['state'] := TSuperObject.ParseFile(TPath.GetHomePath + TPath.DirectorySeparatorChar + 'game.dat', false);
 
    // корректировка старых сейвов
-   DB.O['state'].I['lang'] := StrToIntDef(DB.O['state'].V['lang'], 0);
+   DB.O['state'].I[var_lang] := StrToIntDef(DB.O['state'].V[var_lang], 0);
 end;
 
 procedure TGameManager.SaveGame;
@@ -110,6 +105,11 @@ end;
 procedure TGameManager.UpdateGame;
 /// пересчитываем состояние игры
 begin
+    // изменяем количество ресурсов. однако, ниже нуля их быть не может
+    DB.O['state'].I[var_gold] := Max(DB.O['state'].I[var_gold] + DB.O['state'].I[var_gold_inc], 0);
+    DB.O['state'].I[var_mp]  := Max(DB.O['state'].I[var_mp]  + DB.O['state'].I[var_mp_inc], 0);
+    DB.O['state'].I['iq']  := Max(DB.O['state'].I['iq']  + DB.O['state'].I[var_iq_inc], 0);
+
 
 end;
 
@@ -133,20 +133,22 @@ begin
         buf := SO();
         buf.S[lbl_map] := GetText(lbl_map);
 
-        buf.S[btn_turn]   := GetText(btn_turn);
-        buf.S[lbl_day]    := GetText(lbl_day);
-        buf.S[lbl_all]    := GetText(lbl_all);
+        buf.S[btn_turn] := GetText(btn_turn);
+        buf.S[lbl_day]  := GetText(lbl_day);
+        buf.S[lbl_all]  := GetText(lbl_all);
 
-        buf.S['day'] := IntToStr(DB.O['state'].I['day']);
-        buf.S['res'] := IntToStr(DB.O['state'].I['res']);
-        buf.S['mp'] := IntToStr(DB.O['state'].I['mp']);
-        buf.S['iq'] := IntToStr(DB.O['state'].I['iq']);
+        buf.S['day'] := DB.O['state'].V[var_turn];
+        buf.S['res'] := DB.O['state'].V[var_gold];
+        buf.S['mp']  := DB.O['state'].V[var_mp];
+        buf.S['iq']  := DB.O['state'].V[var_iq];
 
-        buf.S['res_inc'] := IntToStr(DB.O['state'].I['res_inc']);
-        buf.S['mp_inc'] := IntToStr(DB.O['state'].I['mp_inc']);
-        buf.S['iq_inc'] := IntToStr(DB.O['state'].I['iq_inc']);
+        buf.S['people'] := Format('%d/%d', [DB.O['state'].I[var_people], DB.O['state'].I[var_people_max]]);
 
-        buf.S['event_count'] := DB.O['state'].V['event_count'];
+        buf.S['res_inc'] := DB.O['state'].V[var_gold_inc];
+        buf.S['mp_inc']  := DB.O['state'].V[var_mp_inc];
+        buf.S['iq_inc']  := DB.O['state'].V[var_iq_inc];
+
+        buf.S['event_count'] := DB.O['state'].V[var_event_count];
 
         fMap.Update(buf);
     end;

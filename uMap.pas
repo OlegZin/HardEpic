@@ -83,6 +83,10 @@ type
     Label28: TLabel;
     Label29: TLabel;
     Label30: TLabel;
+    iPeople: TImage;
+    lPeople: TLabel;
+    lAdShow: TImage;
+    Label31: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure bTurnClick(Sender: TObject);
     procedure rMenuClick(Sender: TObject);
@@ -244,6 +248,7 @@ begin
        if data.V['iq_inc'] < 0 then lIQChange.TextSettings.FontColor := TAlphaColorRec.Darkred;
    end;
 
+   lPeople.Text := data.V['people'];
 end;
 
 end.
