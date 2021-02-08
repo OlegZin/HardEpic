@@ -24,8 +24,8 @@ const
 
             // общие данные локаций
             'location:['+
+                // королевство
                 '{' +
-                    'number: 0,' +      // номер локации
                     'kind: "'+grd_mountain+'",' +        // тип местности
                     'slots: 1,' +       // текущее количество свободных слотов.
                        // вычисляется как slot_max минус size всех привязанных объектов.
@@ -34,7 +34,21 @@ const
                        // если свободные слоты заканчиваются, в локации не могут
                        // быть помтроены массивные объекты или в нее не могут войти массивные юниты.
                        // у объектов за массивность отвечает параметр SIZE
+                    'allow: true,'+
                 '},' +
+                '{ kind: "'+grd_plain+'", slots: 3, slot_max: 3, allow: true },' +
+                '{ kind: "'+grd_plain+'", slots: 4, slot_max: 4, allow: true },' +
+                '{ kind: "'+grd_plain+'", slots: 4, slot_max: 4, allow: true },' +
+                '{ kind: "'+grd_plain+'", slots: 3, slot_max: 3, allow: true },' +
+                '{ kind: "'+grd_plain+'", slots: 3, slot_max: 3, allow: true },' +
+                '{ kind: "'+grd_foothills+'", slots: 2, slot_max: 2, allow: true },' +
+                '{ kind: "'+grd_mountain+'", slots: 1, slot_max: 1, allow: true },' +
+                '{ kind: "'+grd_foothills+'", slots: 2, slot_max: 2, allow: true },' +
+                '{ kind: "'+grd_wasteland+'", slots: 2, slot_max: 2, allow: true },' +
+
+                // неизведанные земли
+                '{ kind: "'+grd_wasteland+'", slots: 3, slot_max: 3, allow: false },' +
+
             '],' +
 
             /// массив всех объектов, существующих в мире.
@@ -45,15 +59,21 @@ const
 
         '},'+
 
-        //
+        // шаблоны всех объектов, существующих в игре.
+        // при этом, к объектам относятся и эффекты! они имеют ссылку на id объекта на котором висят.
         'object_template:{'+
             obj_volcano+':{' +
-                'location: 0,' +  // в какой локации находится
+                'location: 0,' +  // в какой локации находится (ID массива location)
                 'kind: "'+obj_volcano+'",' +      // тип объекта. от него зависит способ интерпритации раздела Data
                 'class: "'+cls_nature+'",' +     // общий тип объекта: "economy"/"war"/"nature", используется в фильтрации
                 'size: 1,' +      // массивность объекта. занимает ли от место на локации и сколько
-                'data: {'+
-                '},' +
+            '},' +
+            eff_eruption+':{' +
+                'location: 0,' +  // в какой локации находится
+                'kind: "'+eff_eruption+'",' +      // тип объекта. от него зависит способ интерпритации раздела Data
+                'class: "'+cls_nature+'",' +     // общий тип объекта: "economy"/"war"/"nature", используется в фильтрации
+                'size: 1,' +      // массивность объекта. занимает ли от место на локации и сколько
+
                 'effect:['+
                    '{name: "'+eff_eruption+'", curr: 10, full: 10, power: 4},'+
                 '],' +

@@ -8,23 +8,81 @@ type
     TScrSet = set of TScreenTypes;
 
     TGameManager = class
-        DB: ISuperObject;
+      private
+        DB: ISuperObject;  // все игровые данные
+
+        function GetLang: string;  // возвращает индекс текущего языка
+
       public
+        procedure DecLanguage;
+        procedure IncLanguage;
+
         procedure NewGame;
         procedure ContinueGame;
         procedure LoadGame;
         procedure SaveGame;
         procedure RemoveGame;
+
         procedure UpdateInterface(scr: TScrSet);
+
         function IncDay: boolean;
-        function GetText(text_id: string): string;
-        function GetLang: string;
-        procedure DecLanguage;
-        procedure IncLanguage;
 
         procedure UpdateGame;
         /// ключевой метод. полностью пересчитывает логику игры, отрабатывая все события и эффекты
         /// на 1 ход, обновляя состояния всех объектов
+
+
+        function GetText(text_id: variant): string;  // получить текст из базы на текущем языке
+
+
+        // управление общими переменными, в качестве которых выступают числовые и
+        // текстовые поля объекта state.
+        function GetVar(name: variant): string;     // возвращает текущее значение переменной
+        procedure SetVar(name, value: variant);     // устанавливает текущее значение переменной
+        procedure ChangeVar(name, value: variant);  // изменяет значение числовой переменной на дельту (+/-)
+
+        // управление полями объекта, к которому привязан скрипт.
+        // работают аналогично методам работы с Var.
+        // плюс такого подхода в том, что скрипт может напрямую обращаться к полям своего объекта,
+        // а те в свою очередь могут модифицироваться извне. т.е. если будет некий внешний эффект,
+        // повышающий силк пожаров, то скрипт пожара просто получит измененное значение для выполнеия даже
+        // не подозревая об этом.
+        function GetID: string;
+        function GetParam(name, value: variant);
+        procedure SetParam(name, value: variant);
+        procedure ChangeParam(name, delta: variant);
+
+        // управление параметрами указанного объекта.
+        // может применяться для управления уникальными и ключевыми объектами в игре.
+        // например, главным героем.
+        // или для настройки только что созданного
+        function GetObjParam(obj, name, value: variant);
+        procedure SetObjParam(obj, name, value: variant);
+        procedure ChangeObjParam(obj, name, delta: variant);
+
+        // управление глобальным фильтром объектов.
+        // при внесении любых изменений в объекты, если установлен
+        // фильтр, изменения вносятся во все объекты указанного типа,
+        // соответсвтующие текущим параметрам фильтра.
+        // при этом, есть возможность руточнять фильтр постепенно,
+        // производя некте манипуляции между командами FilterAdd.
+        procedure Filter(kind: variant = 0);
+        procedure FilterAdd(name, operation, value: variant);
+        procedure FilterClose;
+
+        // методы для работы с гркппой объектов, определенной фильтром
+        // метод GetParam нереализуем, поскольку имеем дело не с одним объектом
+        procedure FilterSetParam(name, value: variant);
+        procedure FilterChangeParam(name, delta: variant);
+
+        // методы оперирования группой объектов
+        function FilterObjCount: string;   // количество объектов, попадающих под текущий фильтер
+
+
+        //
+        function CreateObj(kind: string): string;  // создает новый объект указанного типа, и возвращает его ID,
+                                                   // что позволит настроить его методами XXXObjParam
+        procedure DeleteObj(id: variant);          // удаляет указанный объект. и все ссылающиеся на него.
     end;
 
 var
