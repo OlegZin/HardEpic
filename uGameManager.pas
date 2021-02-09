@@ -39,7 +39,7 @@ type
         // текстовые поля объекта state.
         function GetVar(name: variant): string;     // возвращает текущее значение переменной
         procedure SetVar(name, value: variant);     // устанавливает текущее значение переменной
-        procedure ChangeVar(name, value: variant);  // изменяет значение числовой переменной на дельту (+/-)
+        procedure ChangeVar(name, delta: variant);  // изменяет значение числовой переменной на дельту (+/-)
 
         // управление полями объекта, к которому привязан скрипт.
         // работают аналогично методам работы с Var.
@@ -47,8 +47,7 @@ type
         // а те в свою очередь могут модифицироваться извне. т.е. если будет некий внешний эффект,
         // повышающий силк пожаров, то скрипт пожара просто получит измененное значение для выполнеия даже
         // не подозревая об этом.
-        function GetID: string;
-        function GetParam(name, value: variant);
+        function GetParam(name, value: variant): string;
         procedure SetParam(name, value: variant);
         procedure ChangeParam(name, delta: variant);
 
@@ -56,7 +55,7 @@ type
         // может применяться для управления уникальными и ключевыми объектами в игре.
         // например, главным героем.
         // или для настройки только что созданного
-        function GetObjParam(obj, name, value: variant);
+        function GetObjParam(obj, name: variant): string;
         procedure SetObjParam(obj, name, value: variant);
         procedure ChangeObjParam(obj, name, delta: variant);
 
@@ -66,7 +65,7 @@ type
         // соответсвтующие текущим параметрам фильтра.
         // при этом, есть возможность руточнять фильтр постепенно,
         // производя некте манипуляции между командами FilterAdd.
-        procedure Filter(kind: variant = 0);
+        procedure Filter(kind: variant);
         procedure FilterAdd(name, operation, value: variant);
         procedure FilterClose;
 
@@ -94,6 +93,25 @@ implementation
 
 uses uDataBase, System.IOUtils, uMap, uMenu;
 
+procedure TGameManager.ChangeObjParam(obj, name, delta: variant);
+/// изменение числового поля указанного объекта
+begin
+    DB.O['state'].O['object'].O[obj].F[name] :=
+    DB.O['state'].O['object'].O[obj].F[name] + delta;
+end;
+
+procedure TGameManager.ChangeParam(name, delta: variant);
+/// изменение числового поля текущего объекта
+begin
+    DB.O['state'].O['object'].O[var_curr_obj].F[name] :=
+    DB.O['state'].O['object'].O[var_curr_obj].F[name] + delta;
+end;
+
+procedure TGameManager.ChangeVar(name, delta: variant);
+begin
+    DB.O['state'].F[name] := DB.O['state'].F[name] + delta;
+end;
+
 procedure TGameManager.ContinueGame;
 begin
     GM.DB := SO(DBjson);
@@ -114,9 +132,19 @@ begin
     DeleteFile(TPath.GetHomePath + TPath.DirectorySeparatorChar + 'game.dat');
 end;
 
-function TGameManager.GetText(text_id: string): string;
+function TGameManager.GetText(text_id: variant): string;
 begin
     result := DB.O['text'].O[GetLang].S[text_id];
+end;
+
+function TGameManager.CreateObj(kind: string): string;
+begin
+
+end;
+
+function TGameManager.GetVar(name: variant): string;
+begin
+    Result := DB.O['state'].V[name];
 end;
 
 procedure TGameManager.DecLanguage;
@@ -127,9 +155,54 @@ begin
     then DB.O['state'].I[var_lang] := High(LangArr);
 end;
 
+procedure TGameManager.DeleteObj(id: variant);
+begin
+
+end;
+
+procedure TGameManager.Filter(kind: variant);
+begin
+
+end;
+
+procedure TGameManager.FilterAdd(name, operation, value: variant);
+begin
+
+end;
+
+procedure TGameManager.FilterChangeParam(name, delta: variant);
+begin
+
+end;
+
+procedure TGameManager.FilterClose;
+begin
+
+end;
+
+function TGameManager.FilterObjCount: string;
+begin
+
+end;
+
+procedure TGameManager.FilterSetParam(name, value: variant);
+begin
+
+end;
+
 function TGameManager.GetLang: string;
 begin
     result := LangArr[DB.O['state'].I[var_lang]];
+end;
+
+function TGameManager.GetObjParam(obj, name: variant): string;
+begin
+    result := DB.O['state'].O['object'].O[obj].V[name];
+end;
+
+function TGameManager.GetParam(name, value: variant): string;
+begin
+    result := DB.O['state'].O['object'].O[var_curr_obj].V[name];
 end;
 
 function TGameManager.IncDay: boolean;
@@ -160,13 +233,38 @@ begin
    GM.DB['state'].AsObject.SaveTo(TPath.GetHomePath + TPath.DirectorySeparatorChar + 'game.dat');
 end;
 
+procedure TGameManager.SetObjParam(obj, name, value: variant);
+begin
+    DB.O['state'].O['object'].O[obj].V[name] := value;
+end;
+
+procedure TGameManager.SetParam(name, value: variant);
+begin
+    DB.O['state'].O['object'].O[var_curr_obj].V[name] := value;
+end;
+
+procedure TGameManager.SetVar(name, value: variant);
+begin
+    DB.O['state'].V[name] := value;
+end;
+
 procedure TGameManager.UpdateGame;
 /// пересчитываем состояние игры
+var
+   a,b: integer;
 begin
     // изменяем количество ресурсов. однако, ниже нуля их быть не может
-    DB.O['state'].I[var_gold] := Max(DB.O['state'].I[var_gold] + DB.O['state'].I[var_gold_inc], 0);
-    DB.O['state'].I[var_mp]  := Max(DB.O['state'].I[var_mp]  + DB.O['state'].I[var_mp_inc], 0);
-    DB.O['state'].I['iq']  := Max(DB.O['state'].I['iq']  + DB.O['state'].I[var_iq_inc], 0);
+    a := StrToInt(GetVar(var_gold));
+    b := StrToInt(GetVar(var_gold_inc));
+    SetVar(var_gold, Max( a + b, 0) );
+
+    a := StrToInt(GetVar(var_mp));
+    b := StrToInt(GetVar(var_mp_inc));
+    SetVar(var_mp, Max( a + b, 0) );
+
+    a := StrToInt(GetVar(var_iq));
+    b := StrToInt(GetVar(var_iq_inc));
+    SetVar(var_iq, Max( a + b, 0) );
 
 
 end;
@@ -195,18 +293,18 @@ begin
         buf.S[lbl_day]  := GetText(lbl_day);
         buf.S[lbl_all]  := GetText(lbl_all);
 
-        buf.S['day'] := DB.O['state'].V[var_turn];
-        buf.S['res'] := DB.O['state'].V[var_gold];
-        buf.S['mp']  := DB.O['state'].V[var_mp];
-        buf.S['iq']  := DB.O['state'].V[var_iq];
+        buf.S['day'] := GetVar(var_turn);
+        buf.S['res'] := GetVar(var_gold);
+        buf.S['mp']  := GetVar(var_mp);
+        buf.S['iq']  := GetVar(var_iq);
 
-        buf.S['people'] := Format('%d/%d', [DB.O['state'].I[var_people], DB.O['state'].I[var_people_max]]);
+        buf.S['people'] := Format('%s/%s', [GetVar(var_people), GetVar(var_people_max)]);
 
-        buf.S['res_inc'] := DB.O['state'].V[var_gold_inc];
-        buf.S['mp_inc']  := DB.O['state'].V[var_mp_inc];
-        buf.S['iq_inc']  := DB.O['state'].V[var_iq_inc];
+        buf.S['res_inc'] := GetVar(var_gold_inc);
+        buf.S['mp_inc']  := GetVar(var_mp_inc);
+        buf.S['iq_inc']  := GetVar(var_iq_inc);
 
-        buf.S['event_count'] := DB.O['state'].V[var_event_count];
+        buf.S['event_count'] := GetVar(var_event_count);
 
         fMap.Update(buf);
     end;
