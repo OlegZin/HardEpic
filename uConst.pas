@@ -25,13 +25,12 @@ const
   var_event_count = 'event_count';
   var_people = 'people';
   var_people_max = 'people_max';
+  var_next_obj_id = 'next_id';
 
   // классы объектов
   cls_nature  = 'nature';   // природный/дикий объект
   cls_war     = 'war';      // оборонительное/военное сооружение, юниты
   cls_economy = 'economy';  // экономическа€ сфера. источники ресурсов, добывающие здани€
-  cls_obj_effect  = 'objeffect';   // игровой эффект, висит на каком либо объекте
-  cls_loc_effect  = 'loceffect';   // игровой эффект, висит на какой либо локации
 
   // типы местности. вли€ют на производство, количество слотов, скорость перемещени€
   grd_plain     = 'plain';
@@ -56,10 +55,16 @@ const
 
 
   // синонимы объектов
-  obj_volcano = 'obj_volcano'; // вулкан
+  obj_location = 'location';
+  obj_effect = 'effect'; // эффект со скриптом
+  obj_volcano = 'volcano'; // вулкан
+  obj_crop = 'crop'; // созревшее поле посевов
+  obj_seed = 'seed'; // посевы, превращающиес€ в поле после созревани€
 
   // синонимы эффектов
   eff_eruption = 'eff_eruption';  // порождени€ лавы в текущем или соседних секторах
+  eff_grow = 'eff_grow';          // созревание посевов в поле
+
 
 var
   LangArr : array[0..1] of string = ('eng','ru');

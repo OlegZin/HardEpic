@@ -156,6 +156,8 @@ begin
 end;
 
 procedure TGameManager.DeleteObj(id: variant);
+// удаляем игровой объект с указанным id, при этом, сканируем все объекты на предмет
+// ссылки на него через parent
 begin
 
 end;
@@ -273,6 +275,7 @@ procedure TGameManager.UpdateInterface(scr: TScrSet);
 /// обновление экранов. в целях оптимизации
 var
    buf: IsuperObject;
+   loc: integer;
 begin
     if sMenu in scr then
     begin
@@ -305,6 +308,14 @@ begin
         buf.S['iq_inc']  := GetVar(var_iq_inc);
 
         buf.S['event_count'] := GetVar(var_event_count);
+
+        // инициализация массива локаций
+        buf.A['loc'] := SA();
+        // формируем массив для отображения игрового поля
+        // перебор локаций
+        for loc := 0 to DB.O['state'].A['location'].Length-1 do
+
+
 
         fMap.Update(buf);
     end;
